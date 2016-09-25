@@ -1,12 +1,11 @@
 #include "lista.h"
-struct nodo;
+
 
 typedef struct nodo nodo_t;
 struct nodo{
   void* dato;
-  nodo_t proximo;
+  nodo_t* proximo;
 };
-
 
 struct lista{
   nodo_t* primero;
@@ -14,11 +13,21 @@ struct lista{
   size_t largo;
 };
 
-struct lista_itererador{
+struct lista_iterador{
 	nodo_t* actual;
   nodo_t* anterior;
 	lista_t* lista;
 };
+
+nodo_t *nodo_crear(void* dato){
+  nodo_t* nodo = malloc(sizeof(nodo_t));
+  if(!nodo){
+    return NULL;
+  }
+  nodo->dato = dato;
+  nodo->proximo = NULL;
+  return nodo;
+}
 
 lista_t *lista_crear(void){
 	lista_t* lista = malloc(sizeof(lista_t));
@@ -125,7 +134,7 @@ void lista_destruir(lista_t *lista, void destruir_dato(void *)){
 		return NULL;
 	}
 	iter->lista = lista;
-	if(lista_esta_vacia(lista){
+	if(lista_esta_vacia(lista)){
 		iter->actual = lista->ultimo;
 	}
 	else{
@@ -163,7 +172,7 @@ void lista_iter_destruir(lista_iter_t *iter){
 }
 
 bool lista_iter_insertar(lista_iter_t *iter, void* dato){
-	nodo_t* nodo_nuevo = crear_nodo(dato);
+	nodo_t* nodo_nuevo = nodo_crear(dato);
   if(!iter || !nodo_nuevo){
     free(nodo_nuevo);
     return false;
@@ -182,7 +191,7 @@ void* lista_iter_borrar(lista_iter_t *iter){
   void* dato= iter->actual->dato;
   iter->anterior->proximo = iter->actual->proximo;
   free(iter->actual);
-  iter-actual = iter->anterior->proximo
+  iter->actual = iter->anterior->proximo;
   iter->lista->largo -= 1;
   return dato;
 }
