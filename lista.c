@@ -29,6 +29,10 @@ nodo_t *nodo_crear(void* dato){
   return nodo;
 }
 
+/* ***************************************************************************
+ *                          PRIMITIVAS DE LA LISTA
+ * ***************************************************************************/
+
 lista_t *lista_crear(void){
 	lista_t* lista = malloc(sizeof(lista_t));
 
