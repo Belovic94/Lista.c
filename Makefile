@@ -7,7 +7,7 @@ OBJS =  lista.o testing.o
 VALGRIND = valgrind
 V_FLAGS = --leak-check=full --track-origins=yes --show-reachable=yes
 
-all: $(DEFAULT)
+all: clean $(DEFAULT)
 
 $(DEFAULT): $(OBJS)
 		$(CC) $(C_FLAGS) main.c $(OBJS) pruebas_alumno.c  -o $(DEFAULT)

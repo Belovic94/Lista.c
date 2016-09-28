@@ -58,6 +58,9 @@ bool lista_insertar_primero(lista_t *lista, void *dato){
 		free(nodo_nuevo);
 		return false;
 	}
+  if(lista_esta_vacia(lista)){
+    lista->ultimo = nodo_nuevo;
+  }
 	nodo_nuevo->proximo = lista->primero;
 	lista->primero = nodo_nuevo;
 	lista->largo += 1;
@@ -72,11 +75,11 @@ bool lista_insertar_ultimo(lista_t *lista, void *dato){
 	}
 	if(lista_esta_vacia(lista)){
 		lista->primero = nodo_nuevo;
-		lista->ultimo = nodo_nuevo;
 	}
 	else{
 		lista->ultimo->proximo = nodo_nuevo;
 	}
+  lista->ultimo = nodo_nuevo;
 	lista->largo += 1;
 	return true;
 }
@@ -149,7 +152,7 @@ void lista_destruir(lista_t *lista, void destruir_dato(void *)){
 }
 
 bool lista_iter_avanzar(lista_iter_t *iter){
-	if(!iter || lista_iter_al_final(iter)){
+	if(lista_iter_al_final(iter)){
 		return false;
 	}
   iter->anterior = iter->actual;
@@ -158,14 +161,14 @@ bool lista_iter_avanzar(lista_iter_t *iter){
 }
 
 void *lista_iter_ver_actual(const lista_iter_t *iter){
-	if(!iter){
-		return NULL;
-	}
-	return iter->actual->dato;
+  if(!iter){
+    return NULL;
+  }
+  return iter->actual->dato;
 }
 
 bool lista_iter_al_final(const lista_iter_t *iter){
-	if(!iter || iter->actual->proximo){
+	if(!iter || iter->actual){
 		return false;
 	}
 	return true;
@@ -181,21 +184,38 @@ bool lista_iter_insertar(lista_iter_t *iter, void* dato){
     free(nodo_nuevo);
     return false;
   }
+  if(iter->actual == iter->lista->primero){
+    iter->lista->primero = nodo_nuevo;
+  }
+  else{
+    if(lista_iter_al_final(iter)){
+      iter->lista->ultimo = nodo_nuevo;
+    }
+    iter->anterior->proximo = nodo_nuevo;
+  }
   nodo_nuevo->proximo = iter->actual;
   iter->actual = nodo_nuevo;
-  iter->anterior->proximo = nodo_nuevo;
   iter->lista->largo += 1;
   return true;
 }
 
 void* lista_iter_borrar(lista_iter_t *iter){
-  if(!iter){
+  if(!iter || lista_esta_vacia(iter->lista)){
     return NULL;
   }
   void* dato= iter->actual->dato;
-  iter->anterior->proximo = iter->actual->proximo;
-  free(iter->actual);
-  iter->actual = iter->anterior->proximo;
+  nodo_t* nodo_aux = iter->actual;
+  iter->actual = iter->actual->proximo;
+  if(nodo_aux == iter->lista->primero){
+    iter->lista->primero = iter->actual->proximo;
+  }
+  else{
+    if(lista_iter_al_final(iter)){
+      iter->lista->ultimo = iter->anterior;
+    }
+    iter->anterior->proximo = iter->actual;
+  }
+  free(nodo_aux);
   iter->lista->largo -= 1;
   return dato;
 }
