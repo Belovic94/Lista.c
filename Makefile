@@ -12,7 +12,7 @@ all: clean $(DEFAULT)
 $(DEFAULT): $(OBJS)
 		$(CC) $(C_FLAGS) main.c $(OBJS) pruebas_alumno.c  -o $(DEFAULT)
 
-$(OBJ_COLA): lista.c lista.h
+$(OBJ_LISTA): lista.c lista.h
 		$(CC) $(C_FLAGS) lista.c -c
 
 $(OBJ_TESTING): testing.c testing.h

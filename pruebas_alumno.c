@@ -3,7 +3,9 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <time.h>
 #define CANT_ELEM 1000
+#define RANGO_RAND 100 //rango del random.
 
 void pruebas_lista_no_creada(void){
   lista_t* lista = NULL;
@@ -100,7 +102,7 @@ void pruebas_lista_elementos_distintos(void){
   long *valorlon1 = malloc(sizeof(long)), *valorlon2 = malloc(sizeof(long));
   char *valorcha1 = malloc(sizeof(char)), *valorcha2 = malloc(sizeof(char));
   int *valorint1 = malloc(sizeof(int)), *valorint2 = malloc(sizeof(int));
-  int *valor = malloc(sizeof(int));
+  int *valor_ingresado = malloc(sizeof(int));
   /*le doy valores a los punteros dinamicos*/
   *valordou1 = 3.1415;
   *valorlon1 = 5004500;
@@ -110,38 +112,112 @@ void pruebas_lista_elementos_distintos(void){
   *valorlon2 = 3895403;
   *valorcha2 = 's';
   *valorint2 = 34;
-  *valor = 5;
+  *valor_ingresado = 5;
 
   print_test("Lista creada exitosamente", lista);
   print_test("Insertar primero en una lista (true)", lista_insertar_primero(lista, valordou1));
   print_test("Insertar primero en una lista (true)", lista_insertar_primero(lista, valordou2));
   print_test("Insertar primero en una lista (true)", lista_insertar_primero(lista, valorlon1));
   print_test("Insertar primero en una lista (true)", lista_insertar_primero(lista, valorlon2));
-  print_test("Insertar primero en una lista (true)", lista_insertar_primero(lista, valorcha1));
-  print_test("Insertar primero en una lista (true)", lista_insertar_primero(lista, valorcha2));
-  print_test("Insertar primero en una lista (true)", lista_insertar_primero(lista, valorint1));
-  print_test("Insertar primero en una lista (true)", lista_insertar_primero(lista, valorint2));
+  print_test("Insertar primero en una lista (true)", lista_insertar_ultimo(lista, valorcha1));
+  print_test("Insertar primero en una lista (true)", lista_insertar_ultimo(lista, valorcha2));
+  print_test("Insertar primero en una lista (true)", lista_insertar_ultimo(lista, valorint1));
+  print_test("Insertar primero en una lista (true)", lista_insertar_ultimo(lista, valorint2));
   //pruebo el iterador externo
-  print_test("Pruebo buscar un elemento en la lista con el iterador(true)", buscar_con_iterador(lista, valorcha1));
-  print_test("Pruebo borrar el ultimo elemento en la lista con el iterador(valordou1)",
-                              *(double*)eliminar_ultimo_elemento(lista) == *valordou1);
+  print_test("Pruebo buscar un elemento en la lista con el iterador(true)",
+                                  buscar_con_iterador(lista, valorcha1));
+  print_test("Pruebo borrar el ultimo elemento en la lista con el iterador(valorint2)",
+                              *(int*)eliminar_ultimo_elemento(lista) == *valorint2);
   print_test("Veo si el largo de la lista cambio (7)", lista_largo(lista) == 7);
   print_test("Pruebo insertar un elemento en una posicion de la lista(true)",
-                                insertar_en_lista(lista, valor, 4));
+                                insertar_en_lista(lista, valor_ingresado, 4));
   print_test("Veo si el largo de la lista cambio (8)", lista_largo(lista) == 8);
-  free(valordou1);
-  /*pruebo la funcion destructura*/
-  lista_destruir(lista, free);
+  print_test("Pruebo buscar el elemento recien ingresado a la lista con el iterador(true)",
+                                  buscar_con_iterador(lista, valor_ingresado));
+  free(valorint2); // libero el elemento borrado de la lista.
+  lista_destruir(lista, free);//pruebo la funcion destructora
   print_test("Destruyo la lista con datos adentro", true);
 }
-/*
-void pruebas_lista_muchos_elementos(void){
-    int vector[CANT_ELEM];
+/*Llena un vector con valores enteros aleatorios entre 0 y 100.*/
+void llenar_vector(int* vector, int largo){
+  srand((int)time(NULL));
+  for (int i = 0; i < largo; i++){
+    vector[i] = rand() % (RANGO_RAND +1);
+  }
 }
-*/
+/*Agrega una cierta cantidad de valores enteros aleatorios a una lista*/
+bool agregar_valores_lista(lista_t *lista, int *vector, int largo){
+  if(!lista || !vector){
+    return false;
+  }
+  for(int i = 0; i < largo; i++){
+    if(!lista_insertar_ultimo(lista, &vector[i])){
+      return false;
+    }
+  }
+  return true;
+}
+/*Vacia la lista por medio de un iterador externo*/
+void vaciar_lista(lista_t *lista){
+  lista_iter_t *iter = lista_iter_crear(lista);
+  while(!lista_iter_al_final(iter)){
+    lista_iter_borrar(iter);
+  }
+  lista_iter_destruir(iter);
+}
+
+/*Calcula el maximo entre dos numeros*/
+bool calcular_maximo(void *dato , void *extra){
+  int *numero = dato, *maximo = extra;
+  if(*numero > *maximo){
+    *maximo = *numero;
+  }
+  return true;
+}
+
+/*Cuenta la cantidad de caracteres de una palabra*/
+bool cantidad_caracteres(void *dato, void *extra){
+  char *palabra = dato;
+  int *total_caracteres = extra;
+
+  for(int i=0; palabra[i] != '\0'; i++){
+    *total_caracteres += 1;
+  }
+  return true;
+}
+
+void pruebas_iterardor_interno(void){
+  lista_t* lista = lista_crear();
+  //coloco el maximo en -1 ya que todos los valores del vector son numeros positivos.
+  int vector[CANT_ELEM], maximo = -1, cant_caracteres = 0;
+  char materia1[] = "Algebra",
+       materia2[] = "Análisis Matemático",
+       materia3[] = "Física",
+       materia4[] = "Probabilidad y Estadística",
+       materia5[] = "Algoritmos y Programación";
+
+  /*Pruebas para calcular el maximo valor de una lista*/
+  llenar_vector(vector, CANT_ELEM);
+  print_test("Lleno la lista con los datos del vector", agregar_valores_lista(lista, vector, CANT_ELEM));
+  lista_iterar(lista, calcular_maximo, &maximo);
+  print_test("Determino el maximo valor de la lista", maximo > -1);
+  vaciar_lista(lista);
+  print_test("Verifico que la lista este vacia", lista_esta_vacia(lista));
+  /*Pruebas para determinar la cantidad de caracteres en la lista*/
+  print_test("Agrego la materia 1", lista_insertar_ultimo(lista, materia1));
+  print_test("Agrego la materia 2", lista_insertar_ultimo(lista, materia2));
+  print_test("Agrego la materia 3", lista_insertar_ultimo(lista, materia3));
+  print_test("Agrego la materia 4", lista_insertar_ultimo(lista, materia4));
+  print_test("Agrego la materia 5", lista_insertar_ultimo(lista, materia5));
+  lista_iterar(lista, cantidad_caracteres, &cant_caracteres);
+  print_test("Determino la cantidad de caracteres en la lista", cant_caracteres != 0);
+  lista_destruir(lista, NULL);
+  print_test("Destruyo la lista", true);
+
+}
 void pruebas_lista_alumno(void){
   pruebas_lista_no_creada();
   pruebas_lista_vacia();
   pruebas_lista_elementos_distintos();
-  //pruebas_lista_muchos_elementos();
+  pruebas_iterardor_interno();
 }
