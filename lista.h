@@ -12,8 +12,8 @@
 struct lista;
 typedef struct lista lista_t;
 
-struct lista_iterador;
-typedef struct lista_iterador lista_iter_t;
+struct lista_iter;
+typedef struct lista_iter lista_iter_t;
 
 /* ******************************************************************
  *                    PRIMITIVAS DE LA LISTA

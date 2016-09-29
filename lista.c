@@ -1,4 +1,6 @@
 #include "lista.h"
+#include <stdbool.h>
+#include <stdlib.h>
 
 
 typedef struct nodo nodo_t;
@@ -13,7 +15,7 @@ struct lista{
   size_t largo;
 };
 
-struct lista_iterador{
+struct lista_iter{
 	nodo_t* actual;
   nodo_t* anterior;
 	lista_t* lista;
@@ -161,7 +163,7 @@ bool lista_iter_avanzar(lista_iter_t *iter){
 }
 
 void *lista_iter_ver_actual(const lista_iter_t *iter){
-  if(!iter){
+  if(!iter || lista_iter_al_final(iter)){
     return NULL;
   }
   return iter->actual->dato;
@@ -200,7 +202,7 @@ bool lista_iter_insertar(lista_iter_t *iter, void* dato){
 }
 
 void* lista_iter_borrar(lista_iter_t *iter){
-  if(!iter || lista_esta_vacia(iter->lista)){
+  if(!iter || lista_iter_al_final(iter)){
     return NULL;
   }
   void* dato= iter->actual->dato;
@@ -225,8 +227,7 @@ void lista_iterar(lista_t *lista, bool visitar(void *dato, void *extra), void *e
     return;
   }
   nodo_t* nodo = lista->primero;
-  int largo = (int)lista->largo;
-  for(int i = 1; i < largo && visitar(nodo->dato, extra); i++){
+  while(nodo && visitar(nodo->dato, extra)){
     nodo = nodo->proximo;
   }
 }

@@ -82,7 +82,7 @@ Devuelve true si se pudo insertar el dato en la posicion especificada de la list
 bool insertar_en_lista(lista_t* lista, void* dato, size_t pos){
   lista_iter_t* l_iter = lista_iter_crear(lista);
   bool insercion_valida = false;
-  for(int i=0; !lista_iter_al_final(l_iter); i++){
+  for(int i = 0; i <= lista_largo(lista); i++){
     if(i == pos){
       insercion_valida = lista_iter_insertar(l_iter, dato);
       break;
@@ -96,7 +96,7 @@ bool insertar_en_lista(lista_t* lista, void* dato, size_t pos){
 
 void pruebas_lista_elementos_distintos(void){
   lista_t* lista = lista_crear();
-  //lista_iter_t* l_iter;
+  lista_iter_t* l_iter;
   //valores que ocupan memoria dinámica
   double *valordou1 = malloc(sizeof(double)), *valordou2 = malloc(sizeof(double));
   long *valorlon1 = malloc(sizeof(long)), *valorlon2 = malloc(sizeof(long));
@@ -130,11 +130,38 @@ void pruebas_lista_elementos_distintos(void){
                               *(int*)eliminar_ultimo_elemento(lista) == *valorint2);
   print_test("Veo si el largo de la lista cambio (7)", lista_largo(lista) == 7);
   print_test("Pruebo insertar un elemento en una posicion de la lista(true)",
-                                insertar_en_lista(lista, valor_ingresado, 4));
+                                insertar_en_lista(lista, valor_ingresado, 6));
   print_test("Veo si el largo de la lista cambio (8)", lista_largo(lista) == 8);
   print_test("Pruebo buscar el elemento recien ingresado a la lista con el iterador(true)",
                                   buscar_con_iterador(lista, valor_ingresado));
+  l_iter = lista_iter_crear(lista);
+  print_test("Creo un iterador de la lista con elementos(true)", l_iter);
+  print_test("Avanzo el iterador (true)", lista_iter_avanzar(l_iter));
+  print_test("Posicion del iterador se corresponde con la del segundo elemento de la lista(true)",
+                              *(long*)lista_iter_ver_actual(l_iter) == *(long*)valorlon1 );
+  print_test("Avanzo el iterador (true)", lista_iter_avanzar(l_iter));
+  print_test("Avanzo el iterador (true)", lista_iter_avanzar(l_iter));
+  print_test("Elimino el valor de la posicion actual del iterador(valordou1)",
+                              *(double*)lista_iter_borrar(l_iter) == *(double*)valordou1);
+  print_test("Posicion del iterador se corresponde con la del segundo elemento de la lista(true)",
+                              *(char*)lista_iter_ver_actual(l_iter) == *(char*)valorcha1 );
+  print_test("Avanzo el iterador (true)", lista_iter_avanzar(l_iter));
+  print_test("Avanzo el iterador (true)", lista_iter_avanzar(l_iter));
+  print_test("Elimino el valor de la posicion actual del iterador(valor_ingresado)",
+                              *(int*)lista_iter_borrar(l_iter) == *(int*)valor_ingresado);
+  print_test("Veo si el largo de la lista cambio (6)", lista_largo(lista) == 6);
+  print_test("Avanzo el iterador (true)", lista_iter_avanzar(l_iter));
+  print_test("Veo si el iterador esta al final(true)", lista_iter_al_final(l_iter));
+  print_test("Intento eliminar cuando el iterador esta al final(NULL)",
+                              !lista_iter_borrar(l_iter));
+  print_test("Agrego un valor cuando el iterador esta al final(true)", lista_iter_insertar(l_iter, valordou1));
+  print_test("Veo si el iterador esta al final(false)", !lista_iter_al_final(l_iter));
+  print_test("El valor actual del iterador se corresponde con el del ultimo dato ingresado(valordou1)",
+                              *(double*)lista_iter_ver_actual(l_iter) == *(double*)valordou1);
   free(valorint2); // libero el elemento borrado de la lista.
+  free(valor_ingresado);
+  lista_iter_destruir(l_iter);
+  print_test("Destruir iterador creado anteriormente(true)", true);
   lista_destruir(lista, free);//pruebo la funcion destructora
   print_test("Destruyo la lista con datos adentro", true);
 }
@@ -157,6 +184,7 @@ bool agregar_valores_lista(lista_t *lista, int *vector, int largo){
   }
   return true;
 }
+
 /*Vacia la lista por medio de un iterador externo*/
 void vaciar_lista(lista_t *lista){
   lista_iter_t *iter = lista_iter_crear(lista);
