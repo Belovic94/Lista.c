@@ -207,7 +207,7 @@ void* lista_iter_borrar(lista_iter_t *iter){
   nodo_t* nodo_aux = iter->actual;
   iter->actual = iter->actual->proximo;
   if(nodo_aux == iter->lista->primero){
-    iter->lista->primero = iter->actual->proximo;
+    iter->lista->primero = iter->actual;
   }
   else{
     if(lista_iter_al_final(iter)){
@@ -218,4 +218,15 @@ void* lista_iter_borrar(lista_iter_t *iter){
   free(nodo_aux);
   iter->lista->largo -= 1;
   return dato;
+}
+
+void lista_iterar(lista_t *lista, bool visitar(void *dato, void *extra), void *extra){
+  if(lista_esta_vacia(lista)){
+    return;
+  }
+  nodo_t* nodo = lista->primero;
+  int largo = (int)lista->largo;
+  for(int i = 1; i < largo && visitar(nodo->dato, extra); i++){
+    nodo = nodo->proximo;
+  }
 }
