@@ -3,9 +3,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include <time.h>
+#include <string.h>
 #define CANT_ELEM 1000
-#define RANGO_RAND 100 //rango del random.
 
 /* ******************************************************************
  *                        FUNCIONES AUXILIARES
@@ -25,7 +24,7 @@ bool lista_pertenece(lista_t* lista, void* dato){
   return false;
 }
 
-void* lista_obtener(lista_t* lista, int pos){
+void* lista_obtener_externo(lista_t* lista, int pos){
   if(pos >= lista_largo(lista)) return NULL;
   lista_iter_t* l_iter = lista_iter_crear(lista);
   if(!l_iter) return NULL;
@@ -75,11 +74,10 @@ bool insertar_en_lista(lista_t* lista, void* dato, size_t pos){
   return insercion_valida;
 }
 
-/*Llena un vector con valores enteros aleatorios entre 0 y 100.*/
+/*Llena un vector con valores enteros entre 0 y 1000.*/
 void llenar_vector(int* vector, int largo){
-  srand((int)time(NULL));
   for (int i = 0; i < largo; i++){
-    vector[i] = rand() % (RANGO_RAND +1);
+    vector[i] = i;
   }
 }
 
@@ -96,22 +94,17 @@ bool agregar_valores_lista(lista_t *lista, int *vector, int largo){
   return true;
 }
 
-/*Vacia la lista por medio de un iterador externo*/
-void vaciar_lista(lista_t *lista){
-  lista_iter_t *iter = lista_iter_crear(lista);
-  while(!lista_iter_al_final(iter)){
-    lista_iter_borrar(iter);
-  }
-  lista_iter_destruir(iter);
-}
+
 /**********************FUNCIONES ITERADOR INTERNO********************************/
 
-/*Calcula el maximo entre dos numeros*/
-bool calcular_maximo(void *dato , void *extra){
-  int *numero = dato, *maximo = extra;
-  if(*numero > *maximo){
-    *maximo = *numero;
+/**/
+bool lista_obtener_interno(void *dato , void *extra){
+  int *numero = dato, *pos = extra;
+  if(*pos == 0){
+    *pos = *numero;
+    return false;
   }
+  *pos -= 1;
   return true;
 }
 
@@ -119,10 +112,7 @@ bool calcular_maximo(void *dato , void *extra){
 bool cantidad_caracteres(void *dato, void *extra){
   char *palabra = dato;
   int *total_caracteres = extra;
-
-  for(int i=0; palabra[i] != '\0'; i++){
-    *total_caracteres += 1;
-  }
+  *total_caracteres += (int)strlen(palabra);
   return true;
 }
 
@@ -255,41 +245,44 @@ void pruebas_iterardor_externo(void){
 
   //pruebo el iterador externo
   print_test("Pruebo buscar un elemento en la lista con el iterador(true)",
-                                  lista_pertenece(lista, valorcha1));
+                                lista_pertenece(lista, valorcha1));
   print_test("Pruebo borrar el ultimo elemento en la lista con el iterador(valorint2)",
-                              *(int*)eliminar_ultimo_elemento(lista) == *valorint2);
+                                *(int*)eliminar_ultimo_elemento(lista) == *valorint2);
   print_test("Veo si el largo de la lista cambio (7)", lista_largo(lista) == 7);
   print_test("Pruebo insertar un elemento en una posicion de la lista(true)",
                                 insertar_en_lista(lista, valor_ingresado, 6));
   print_test("Veo si el largo de la lista cambio (8)", lista_largo(lista) == 8);
   print_test("Pruebo buscar el elemento recien ingresado a la lista con el iterador(true)",
-                                  lista_pertenece(lista, valor_ingresado));
-  print_test("Busco el elemento en la posicion 5", *(char*)lista_obtener(lista, 5) == *valorcha2);
+                                lista_pertenece(lista, valor_ingresado));
+  print_test("Busco el elemento en la posicion 5",
+                                *(char*)lista_obtener_externo(lista, 5) == *valorcha2);
 
   l_iter = lista_iter_crear(lista);
   print_test("Creo un iterador de la lista con elementos(true)", l_iter);
   print_test("Avanzo el iterador (true)", lista_iter_avanzar(l_iter));
   print_test("Posicion del iterador se corresponde con la del segundo elemento de la lista(true)",
-                              *(long*)lista_iter_ver_actual(l_iter) == *(long*)valorlon1 );
+                                *(long*)lista_iter_ver_actual(l_iter) == *(long*)valorlon1 );
   print_test("Avanzo el iterador (true)", lista_iter_avanzar(l_iter));
   print_test("Avanzo el iterador (true)", lista_iter_avanzar(l_iter));
   print_test("Elimino el valor de la posicion actual del iterador(valordou1)",
-                              *(double*)lista_iter_borrar(l_iter) == *(double*)valordou1);
+                                *(double*)lista_iter_borrar(l_iter) == *(double*)valordou1);
   print_test("Posicion del iterador se corresponde con la del segundo elemento de la lista(true)",
-                              *(char*)lista_iter_ver_actual(l_iter) == *(char*)valorcha1 );
+                                *(char*)lista_iter_ver_actual(l_iter) == *(char*)valorcha1 );
   print_test("Avanzo el iterador (true)", lista_iter_avanzar(l_iter));
   print_test("Avanzo el iterador (true)", lista_iter_avanzar(l_iter));
   print_test("Elimino el valor de la posicion actual del iterador(valor_ingresado)",
-                              *(int*)lista_iter_borrar(l_iter) == *(int*)valor_ingresado);
+                                *(int*)lista_iter_borrar(l_iter) == *(int*)valor_ingresado);
   print_test("Veo si el largo de la lista cambio (6)", lista_largo(lista) == 6);
   print_test("Avanzo el iterador (true)", lista_iter_avanzar(l_iter));
   print_test("Veo si el iterador esta al final(true)", lista_iter_al_final(l_iter));
   print_test("Intento eliminar cuando el iterador esta al final(NULL)",
-                              !lista_iter_borrar(l_iter));
-  print_test("Agrego un valor cuando el iterador esta al final(true)", lista_iter_insertar(l_iter, valordou1));
+                                !lista_iter_borrar(l_iter));
+  print_test("Agrego un valor cuando el iterador esta al final(true)",
+                                lista_iter_insertar(l_iter, valordou1));
   print_test("Veo si el iterador esta al final(false)", !lista_iter_al_final(l_iter));
   print_test("El valor actual del iterador se corresponde con el del ultimo dato ingresado(valordou1)",
-                              *(double*)lista_iter_ver_actual(l_iter) == *(double*)valordou1);
+                                *(double*)lista_iter_ver_actual(l_iter) == *(double*)valordou1);
+
   free(valorint2); // libero el elemento borrado de la lista.
   free(valor_ingresado);
   lista_iter_destruir(l_iter);
@@ -301,7 +294,7 @@ void pruebas_iterardor_externo(void){
 void pruebas_iterardor_interno(void){
   lista_t* lista = lista_crear();
   //coloco el maximo en -1 ya que todos los valores del vector son numeros positivos.
-  int vector[CANT_ELEM], maximo = -1, cant_caracteres = 0;
+  int vector[CANT_ELEM], posicion = 20, cant_caracteres = 0;
   char materia1[] = "Algebra",
        materia2[] = "Análisis Matemático",
        materia3[] = "Física",
@@ -311,9 +304,10 @@ void pruebas_iterardor_interno(void){
   /*Pruebas para calcular el maximo valor de una lista*/
   llenar_vector(vector, CANT_ELEM);
   print_test("Lleno la lista con los datos del vector", agregar_valores_lista(lista, vector, CANT_ELEM));
-  lista_iterar(lista, calcular_maximo, &maximo);
-  print_test("Determino el maximo valor de la lista", maximo > -1);
-  vaciar_lista(lista);
+  lista_iterar(lista, lista_obtener_interno, &posicion);
+  print_test("Determino el valor de la posicion 20 de la lista", posicion == 20);
+  lista_destruir(lista, NULL);
+  lista = lista_crear();
   print_test("Verifico que la lista este vacia", lista_esta_vacia(lista));
   /*Pruebas para determinar la cantidad de caracteres en la lista*/
   print_test("Agrego la materia 1", lista_insertar_ultimo(lista, materia1));
@@ -322,7 +316,9 @@ void pruebas_iterardor_interno(void){
   print_test("Agrego la materia 4", lista_insertar_ultimo(lista, materia4));
   print_test("Agrego la materia 5", lista_insertar_ultimo(lista, materia5));
   lista_iterar(lista, cantidad_caracteres, &cant_caracteres);
-  print_test("Determino la cantidad de caracteres en la lista", cant_caracteres != 0);
+  size_t tot_carac = strlen(materia1) + strlen(materia2) + strlen(materia3)
+                    + strlen(materia4) + strlen(materia5);
+  print_test("Determino la cantidad de caracteres en la lista", cant_caracteres == tot_carac);
   lista_destruir(lista, NULL);
   print_test("Destruyo la lista", true);
 
