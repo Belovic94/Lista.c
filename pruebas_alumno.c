@@ -1,10 +1,17 @@
 #include "lista.h"
 #include "testing.h"
+#include "pila.h"
+#include "cola.h"
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #define CANT_ELEM 1000
+#define RANGO_RAND 100 //rango del random.
+#define POSICION 20
+#define CANT_VECTOR_AUX 5 //cantidad de valores que tendra el vector
+                          //utilizado para encolar y apilar elementos
 
 /* ******************************************************************
  *                        FUNCIONES AUXILIARES
@@ -24,8 +31,11 @@ bool lista_pertenece(lista_t* lista, void* dato){
   return false;
 }
 
+/*Recibe una lista y una posicion de la misma.
+Devuelve el dato esta en la posicion especificada de la lista.
+Devuelve NULL si la posicion no es valida.*/
 void* lista_obtener_externo(lista_t* lista, int pos){
-  if(pos >= lista_largo(lista)) return NULL;
+  if(pos < 0 || pos >= lista_largo(lista)) return NULL;
   lista_iter_t* l_iter = lista_iter_crear(lista);
   if(!l_iter) return NULL;
   for(int i = 0; i <= lista_largo(lista); i++){
@@ -74,11 +84,13 @@ bool insertar_en_lista(lista_t* lista, void* dato, size_t pos){
   return insercion_valida;
 }
 
-/*Llena un vector con valores enteros entre 0 y 1000.*/
+/*Llena un vector con valores enteros aleatorios entre 0 y 100.*/
 void llenar_vector(int* vector, int largo){
+  srand((int)time(NULL));
   for (int i = 0; i < largo; i++){
-    vector[i] = i;
+    vector[i] = rand() % (RANGO_RAND +1);
   }
+  vector[rand() % (RANGO_RAND +1)] = RANGO_RAND + 1; // le coloco el valor maximo.
 }
 
 /*Agrega una cierta cantidad de valores enteros aleatorios a una lista*/
@@ -97,14 +109,23 @@ bool agregar_valores_lista(lista_t *lista, int *vector, int largo){
 
 /**********************FUNCIONES ITERADOR INTERNO********************************/
 
-/**/
+/*Obtiene el valor en una posicion de la lista*/
 bool lista_obtener_interno(void *dato , void *extra){
-  int *numero = dato, *pos = extra;
-  if(*pos == 0){
-    *pos = *numero;
+  int *numero = dato, *vec_buscar = extra;
+  if(vec_buscar[0] == 0){
+     vec_buscar[1] = *numero;
     return false;
   }
-  *pos -= 1;
+  vec_buscar[0]--;
+  return true;
+}
+
+/*Calcula el maximo entre dos numeros*/
+bool calcular_maximo(void *dato , void *extra){
+  int *numero = dato, *maximo = extra;
+  if(*numero > *maximo){
+    *maximo = *numero;
+  }
   return true;
 }
 
@@ -116,11 +137,39 @@ bool cantidad_caracteres(void *dato, void *extra){
   return true;
 }
 
+/************************FUNCIONES AUXILIARES PILA **********************/
+
+void llenar_pila(pila_t* pila, int* vector){
+
+  for(int i=0; i<CANT_VECTOR_AUX; i++){
+    vector[i] = i + 1;
+    pila_apilar(pila, &vector[i]);
+  }
+}
+
+void wrapper_pila_destruir(void* pila){
+  pila_destruir((pila_t*)pila);
+}
+
+/************************FUNCIONES AUXILIARES COLA **********************/
+
+void llenar_cola(cola_t* cola, int* vector){
+
+  for(int i=0; i<CANT_VECTOR_AUX; i++){
+    vector[i] = i + 1;
+    cola_encolar(cola, &vector[i]);
+  }
+}
+
+void wrapper_cola_destruir(void* cola){
+  cola_destruir((cola_t*)cola, NULL);
+}
 
 
 /* ******************************************************************
  *                        PRUEBAS DE LA LISTA
  * *****************************************************************/
+
 
 void pruebas_lista_no_creada(void){
   lista_t* lista = NULL;
@@ -137,6 +186,7 @@ void pruebas_lista_no_creada(void){
   print_test("Insertar ultimo en una lista no creada(false)", !lista_insertar_ultimo(lista, &valor));
 
 }
+
 
 void pruebas_iterador_lista_no_creada(void){
   lista_t* lista = NULL;
@@ -210,6 +260,41 @@ void pruebas_iterador_lista_vacia(void){
   print_test("Destruyo la lista vacia", true);
 }
 
+void pruebas_lista_destructor(void){
+  lista_t* lista = lista_crear();
+  pila_t* pila = pila_crear();
+  cola_t* cola = cola_crear();
+  int vector[CANT_VECTOR_AUX];
+
+  double *valordou = malloc(sizeof(double));
+  long *valorlon = malloc(sizeof(long));
+  char *valorcha = malloc(sizeof(char));
+  int *valorint = malloc(sizeof(int));
+  *valordou = 14.54;
+  *valorlon = 3000000000;
+  *valorcha = 'a';
+  *valorint = 84;
+
+  printf("\n***PRUEBAS LISTA DESTRUCTOR***\n");
+  llenar_pila(pila, vector);
+  print_test("Insertar a la lista una pila de números enteros", lista_insertar_primero(lista, pila));
+  lista_destruir(lista, wrapper_pila_destruir);
+  print_test("Lista con pila adentro destruida", true);
+
+  lista = lista_crear();
+  print_test("Insertar primero en una lista (true)", lista_insertar_primero(lista, valordou));
+  print_test("Insertar primero en una lista (true)", lista_insertar_primero(lista, valorlon));
+  print_test("Insertar ultimo en una lista (true)", lista_insertar_ultimo(lista, valorcha));
+  print_test("Insertar ultimo en una lista (true)", lista_insertar_ultimo(lista, valorint));
+  lista_destruir(lista, free);
+  print_test("Lista con elementos pedidos con malloc destruida", true);
+
+  lista = lista_crear();
+  llenar_cola(cola, vector);
+  print_test("Insertar a la lista una cola de números enteros", lista_insertar_primero(lista, cola));
+  lista_destruir(lista, wrapper_cola_destruir);
+  print_test("Lista con cola adentro destruida", true);
+}
 
 
 void pruebas_iterardor_externo(void){
@@ -287,28 +372,37 @@ void pruebas_iterardor_externo(void){
   free(valor_ingresado);
   lista_iter_destruir(l_iter);
   print_test("Destruir iterador creado anteriormente(true)", true);
-  lista_destruir(lista, free);//pruebo la funcion destructora
+  lista_destruir(lista, free);//pruebo la funcion destructora.
   print_test("Destruyo la lista con datos adentro", true);
 }
 
 void pruebas_iterardor_interno(void){
   lista_t* lista = lista_crear();
   //coloco el maximo en -1 ya que todos los valores del vector son numeros positivos.
-  int vector[CANT_ELEM], posicion = 20, cant_caracteres = 0;
+  int vector[CANT_ELEM], maximo = -1, cant_caracteres = 0;
+  int vec_buscar[2] = {POSICION};//vector que paso como parametro para buscar el valor en una posicion de la lista.
   char materia1[] = "Algebra",
        materia2[] = "Análisis Matemático",
        materia3[] = "Física",
        materia4[] = "Probabilidad y Estadística",
        materia5[] = "Algoritmos y Programación";
 
+  printf("\n***PRUEBAS ITERADOR INTERNO***\n");
   /*Pruebas para calcular el maximo valor de una lista*/
   llenar_vector(vector, CANT_ELEM);
   print_test("Lleno la lista con los datos del vector", agregar_valores_lista(lista, vector, CANT_ELEM));
-  lista_iterar(lista, lista_obtener_interno, &posicion);
-  print_test("Determino el valor de la posicion 20 de la lista", posicion == 20);
+  lista_iterar(lista, calcular_maximo, &maximo);
+  print_test("Determino el maximo valor de la lista", maximo == RANGO_RAND + 1);
+
+  /*Pruebas para obterner el valor en una posicion de la lista*/
+  lista_iterar(lista, lista_obtener_interno, vec_buscar);
+  int valor_pos = vector[POSICION];
+  print_test("Determino el valor en una posicion de la lista", vec_buscar[1] == valor_pos);
+
   lista_destruir(lista, NULL);
   lista = lista_crear();
   print_test("Verifico que la lista este vacia", lista_esta_vacia(lista));
+
   /*Pruebas para determinar la cantidad de caracteres en la lista*/
   print_test("Agrego la materia 1", lista_insertar_ultimo(lista, materia1));
   print_test("Agrego la materia 2", lista_insertar_ultimo(lista, materia2));
@@ -328,6 +422,7 @@ void pruebas_lista_alumno(void){
   pruebas_iterador_lista_no_creada();
   pruebas_lista_vacia();
   pruebas_iterador_lista_vacia();
+  pruebas_lista_destructor();
   pruebas_iterardor_externo();
   pruebas_iterardor_interno();
 }
